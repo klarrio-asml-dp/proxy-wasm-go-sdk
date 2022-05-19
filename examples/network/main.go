@@ -65,13 +65,15 @@ func (ctx *networkContext) OnDownstreamData(dataSize int, endOfStream bool) type
 		return types.ActionContinue
 	}
 
-	data, err := proxywasm.GetDownstreamData(0, dataSize)
+// 	data, err := proxywasm.GetDownstreamData(0, dataSize)
+	_, err := proxywasm.GetDownstreamData(0, dataSize)
 	if err != nil && err != types.ErrorStatusNotFound {
 		proxywasm.LogCriticalf("failed to get downstream data: %v", err)
 		return types.ActionContinue
 	}
 
-	proxywasm.LogInfof(">>>>>> downstream data received >>>>>>\n%s", string(data))
+// 	proxywasm.LogInfof(">>>>>> downstream data received >>>>>>\n%s", string(data))
+	proxywasm.LogInfof(">>>>>> downstream data received >>>>>>\n")
 	return types.ActionContinue
 }
 
@@ -81,11 +83,66 @@ func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 	return
 }
 
+func (ctx *networkContext) PrintConnectionAttrs() error {
+    addr, err := proxywasm.GetProperty([]string{"source", "address"})
+    if err != nil && err != types.ErrorStatusNotFound {
+        proxywasm.LogCriticalf("failed to get source address: %v", err)
+        return nil
+    }
+    proxywasm.LogInfof("source address: %s", string(addr))
+    dest, err := proxywasm.GetProperty([]string{"destination", "address"})
+    if err != nil && err != types.ErrorStatusNotFound {
+        proxywasm.LogCriticalf("failed to get destination address: %v", err)
+        return nil
+    }
+    proxywasm.LogInfof("destination address: %s", string(dest))
+    return nil
+}
+
+ // Print envoy upstream properties
+func (ctx *networkContext) PrintUpstreamAttrs() error {
+      addr, err := proxywasm.GetProperty([]string{"upstream", "address"})
+      if err != nil && err != types.ErrorStatusNotFound {
+          proxywasm.LogCriticalf("failed to get upstream address: %v", err)
+          return nil
+      }
+      proxywasm.LogInfof("upstream address: %s", string(addr))
+      san, err := proxywasm.GetProperty([]string{"upstream", "uri_san_local_certificate"})
+      if err != nil && err != types.ErrorStatusNotFound {
+          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
+          return nil
+      }
+      proxywasm.LogInfof("upstream san: %s", string(san))
+      san_peer, err := proxywasm.GetProperty([]string{"upstream", "uri_san_peer_certificate"})
+      if err != nil && err != types.ErrorStatusNotFound {
+          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
+          return nil
+      }
+      proxywasm.LogInfof("upstream san: %s", string(san_peer))
+      dns_local, err := proxywasm.GetProperty([]string{"upstream", "dns_san_local_certificate"})
+      if err != nil && err != types.ErrorStatusNotFound {
+          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
+          return nil
+      }
+      proxywasm.LogInfof("upstream san: %s", string(dns_local))
+      dns_peer, err := proxywasm.GetProperty([]string{"upstream", "dns_san_peer_certificate"})
+      if err != nil && err != types.ErrorStatusNotFound {
+          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
+          return nil
+      }
+      proxywasm.LogInfof("upstream san: %s", string(dns_peer))
+
+      return nil
+}
+
 // Override types.DefaultTcpContext.
 func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.Action {
 	if dataSize == 0 {
 		return types.ActionContinue
 	}
+
+	_ = ctx.PrintConnectionAttrs()
+    _ = ctx.PrintUpstreamAttrs()
 
 	ret, err := proxywasm.GetProperty([]string{"upstream", "address"})
 	if err != nil {
@@ -95,12 +152,14 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 
 	proxywasm.LogInfof("remote address: %s", string(ret))
 
-	data, err := proxywasm.GetUpstreamData(0, dataSize)
+// 	data, err := proxywasm.GetUpstreamData(0, dataSize)
+	_, err = proxywasm.GetUpstreamData(0, dataSize)
 	if err != nil && err != types.ErrorStatusNotFound {
 		proxywasm.LogCritical(err.Error())
 	}
 
-	proxywasm.LogInfof("<<<<<< upstream data received <<<<<<\n%s", string(data))
+// 	proxywasm.LogInfof("<<<<<< upstream data received <<<<<<\n%s", string(data))
+	proxywasm.LogInfof("<<<<<< upstream data received <<<<<<\n")
 	return types.ActionContinue
 }
 
