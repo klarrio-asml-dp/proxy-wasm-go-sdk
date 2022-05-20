@@ -84,55 +84,22 @@ func (ctx *networkContext) OnDownstreamClose(types.PeerType) {
 }
 
 func (ctx *networkContext) PrintConnectionAttrs() error {
-    addr, err := proxywasm.GetProperty([]string{"source", "address"})
+    uri_san_local_certificate, err := proxywasm.GetProperty([]string{"connection", "uri_san_local_certificate"})
     if err != nil && err != types.ErrorStatusNotFound {
         proxywasm.LogCriticalf("failed to get source address: %v", err)
         return nil
     }
-    proxywasm.LogInfof("source address: %s", string(addr))
-    dest, err := proxywasm.GetProperty([]string{"destination", "address"})
+    proxywasm.LogInfof("connection uri_san_local_certificate: %s", string(uri_san_local_certificate))
+
+    uri_san_peer_certificate, err := proxywasm.GetProperty([]string{"connection", "uri_san_peer_certificate"})
     if err != nil && err != types.ErrorStatusNotFound {
-        proxywasm.LogCriticalf("failed to get destination address: %v", err)
+        proxywasm.LogCriticalf("failed to get source address: %v", err)
         return nil
     }
-    proxywasm.LogInfof("destination address: %s", string(dest))
+    proxywasm.LogInfof("connection uri_san_peer_certificate: %s", string(uri_san_peer_certificate))
+
+
     return nil
-}
-
- // Print envoy upstream properties
-func (ctx *networkContext) PrintUpstreamAttrs() error {
-      addr, err := proxywasm.GetProperty([]string{"upstream", "address"})
-      if err != nil && err != types.ErrorStatusNotFound {
-          proxywasm.LogCriticalf("failed to get upstream address: %v", err)
-          return nil
-      }
-      proxywasm.LogInfof("upstream address: %s", string(addr))
-      san, err := proxywasm.GetProperty([]string{"upstream", "uri_san_local_certificate"})
-      if err != nil && err != types.ErrorStatusNotFound {
-          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
-          return nil
-      }
-      proxywasm.LogInfof("upstream san: %s", string(san))
-      san_peer, err := proxywasm.GetProperty([]string{"upstream", "uri_san_peer_certificate"})
-      if err != nil && err != types.ErrorStatusNotFound {
-          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
-          return nil
-      }
-      proxywasm.LogInfof("upstream san: %s", string(san_peer))
-      dns_local, err := proxywasm.GetProperty([]string{"upstream", "dns_san_local_certificate"})
-      if err != nil && err != types.ErrorStatusNotFound {
-          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
-          return nil
-      }
-      proxywasm.LogInfof("upstream san: %s", string(dns_local))
-      dns_peer, err := proxywasm.GetProperty([]string{"upstream", "dns_san_peer_certificate"})
-      if err != nil && err != types.ErrorStatusNotFound {
-          proxywasm.LogCriticalf("failed to get upstream san: %v", err)
-          return nil
-      }
-      proxywasm.LogInfof("upstream san: %s", string(dns_peer))
-
-      return nil
 }
 
 // Override types.DefaultTcpContext.
@@ -142,18 +109,9 @@ func (ctx *networkContext) OnUpstreamData(dataSize int, endOfStream bool) types.
 	}
 
 	_ = ctx.PrintConnectionAttrs()
-    _ = ctx.PrintUpstreamAttrs()
-
-	ret, err := proxywasm.GetProperty([]string{"upstream", "address"})
-	if err != nil {
-		proxywasm.LogCriticalf("failed to get upstream data: %v", err)
-		return types.ActionContinue
-	}
-
-	proxywasm.LogInfof("remote address: %s", string(ret))
 
 // 	data, err := proxywasm.GetUpstreamData(0, dataSize)
-	_, err = proxywasm.GetUpstreamData(0, dataSize)
+	_, err := proxywasm.GetUpstreamData(0, dataSize)
 	if err != nil && err != types.ErrorStatusNotFound {
 		proxywasm.LogCritical(err.Error())
 	}
